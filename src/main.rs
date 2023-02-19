@@ -3,7 +3,6 @@ use std::net::TcpListener;
 use std::thread::spawn;
 use tungstenite::{accept, Message};
 
-/// A WebSocket echo server
 fn main() {
     let server = TcpListener::bind("127.0.0.1:9001").unwrap();
     for stream in server.incoming() {
@@ -13,21 +12,23 @@ fn main() {
             loop {
                 let msg = websocket.read_message().unwrap();
 
-                // We do not want to send back ping/pong messages.
                 if msg.is_binary() || msg.is_text() {
                     let split = msg.to_text().unwrap().split(" ").collect::<Vec<&str>>();
                     let instruction = split[0];
-                    let key = split[1].to_string();
-                    let value = split[2..].join(" ");
-                    let mut result = String::new();
+                    let result: String;
 
                     match instruction {
                         "SET" => {
+                            let key = split[1].to_string();
+                            let value = split[2..].join(" ");
+                            
                             data.insert(key, value);
                             result = "SUCCESS".to_string();
                             ()
                         }
                         "GET" => {
+                            let key = split[1].to_string();
+                            
                             result = data
                                 .get(&key)
                                 .unwrap_or(&"ERROR: Key not in store".to_string())
